@@ -26,6 +26,8 @@
 
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.4</surefire-plugin.version>
+        <!-- Build a single runnable (uber) jar so `java -jar target/<name>-runner.jar` works -->
+        <quarkus.package.jar.type>uber-jar</quarkus.package.jar.type>
     </properties>
 
     <dependencyManagement>
