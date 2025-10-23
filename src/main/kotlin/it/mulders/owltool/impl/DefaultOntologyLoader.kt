@@ -17,37 +17,33 @@ class DefaultOntologyLoader : OntologyLoader {
     override fun load(
         input: InputStream,
         ontologyNamespace: String,
-    ): Result<Ontology> {
-        return InputStreamReader(input)
-                .runCatching {
-                    ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM)
-                        .read(this, "", "TTL") as OntModel
-                }
-                .map { model ->
-                    model
-                        .listClasses()
+    ): Result<Ontology> =
+        InputStreamReader(input)
+            .runCatching {
+                ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM).read(this, "", "TTL") as OntModel
+            }.map { model ->
+                model
+                    .listClasses()
+                    .asSequence()
+                    .filter { ontClass -> ontClass.nameSpace == ontologyNamespace }
+                    .onEach { ontClass ->
+                        log.debug(
+                            "Detected class; namespace={}, name={}",
+                            ontClass.nameSpace,
+                            ontClass.localName,
+                        )
+                    }.toSet()
+            }.map { ontClassesInNamespace ->
+                val classes =
+                    ontClassesInNamespace
                         .asSequence()
-                        .filter { ontClass -> ontClass.nameSpace == ontologyNamespace }
-                        .onEach { ontClass ->
-                            log.debug(
-                                "Detected class; namespace={}, name={}",
-                                ontClass.nameSpace,
-                                ontClass.localName,
-                            )
-                        }.toSet()
-                }
-                .map { ontClassesInNamespace ->
-                    val classes =
-                        ontClassesInNamespace
-                            .asSequence()
-                            .filter { it.superClass?.nameSpace != ontologyNamespace }
-                            .map { ontClass -> Class(ontClass.nameSpace, ontClass.localName) }
-                            .map { it.withChildren(it.findChildClasses(ontClassesInNamespace)) }
-                            .toSet()
+                        .filter { it.superClass?.nameSpace != ontologyNamespace }
+                        .map { ontClass -> Class(ontClass.nameSpace, ontClass.localName) }
+                        .map { it.withChildren(it.findChildClasses(ontClassesInNamespace)) }
+                        .toSet()
 
-                    Ontology(classes)
-                }
-    }
+                Ontology(classes)
+            }
 
     private fun Class.findChildClasses(ontClassesInNamespace: Collection<OntClass>): Collection<Class> =
         ontClassesInNamespace

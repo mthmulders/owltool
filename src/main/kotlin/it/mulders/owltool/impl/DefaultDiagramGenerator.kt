@@ -25,15 +25,14 @@ class DefaultDiagramGenerator(
         return loader
             .load(path.inputStream(), namespace)
             .map { ontology ->
-                log.info("Ontology loaded, found ${ontology.classCount()} classes in namespace $namespace")
+                log.info(
+                    "Ontology loaded, found ${ontology.classCount()} classes in namespace $namespace",
+                )
 
                 val outputPath = determineOutputPath(path)
                 writer.generateDiagram(ontology, determineOutputStream(outputPath))
                 outputPath
-            }
-            .onFailure { t ->
-                log.error("Failed to generate diagram for $path", t)
-            }
+            }.onFailure { t -> log.error("Failed to generate diagram for $path", t) }
     }
 
     private fun determineOutputPath(inputPath: Path): Path {
