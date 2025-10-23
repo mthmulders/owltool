@@ -70,6 +70,16 @@
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-core</artifactId>
             <version>${jena.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.jena</groupId>
+                    <artifactId>jena-riot-protobuf</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.protobuf</groupId>
+                    <artifactId>protobuf-java</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.jena</groupId>
@@ -231,6 +241,10 @@
 
     <profiles>
         <profile>
+            <!--
+            Building a native image doesn't work, Jena and Protocol Buffers are not playing nicely.
+            See https://github.com/mthmulders/owltool/issues/12.
+             -->
             <id>native</id>
             <activation>
                 <property>
