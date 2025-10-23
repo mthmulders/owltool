@@ -5,6 +5,7 @@ import it.mulders.owltool.model.Class
 import it.mulders.owltool.model.Ontology
 import jakarta.enterprise.context.ApplicationScoped
 import org.apache.jena.ontology.OntClass
+import org.apache.jena.ontology.OntModel
 import org.apache.jena.ontology.OntModelSpec
 import org.apache.jena.rdf.model.ModelFactory
 import org.slf4j.LoggerFactory
@@ -16,33 +17,36 @@ class DefaultOntologyLoader : OntologyLoader {
     override fun load(
         input: InputStream,
         ontologyNamespace: String,
-    ): Ontology {
-        val model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM)
+    ): Result<Ontology> {
+        return InputStreamReader(input)
+                .runCatching {
+                    ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM)
+                        .read(this, "", "TTL") as OntModel
+                }
+                .map { model ->
+                    model
+                        .listClasses()
+                        .asSequence()
+                        .filter { ontClass -> ontClass.nameSpace == ontologyNamespace }
+                        .onEach { ontClass ->
+                            log.debug(
+                                "Detected class; namespace={}, name={}",
+                                ontClass.nameSpace,
+                                ontClass.localName,
+                            )
+                        }.toSet()
+                }
+                .map { ontClassesInNamespace ->
+                    val classes =
+                        ontClassesInNamespace
+                            .asSequence()
+                            .filter { it.superClass?.nameSpace != ontologyNamespace }
+                            .map { ontClass -> Class(ontClass.nameSpace, ontClass.localName) }
+                            .map { it.withChildren(it.findChildClasses(ontClassesInNamespace)) }
+                            .toSet()
 
-        InputStreamReader(input).use { reader -> model.read(reader, "", "TTL") }
-
-        val ontClassesInNamespace: Set<OntClass> =
-            model
-                .listClasses()
-                .asSequence()
-                .filter { ontClass -> ontClass.nameSpace == ontologyNamespace }
-                .onEach { ontClass ->
-                    log.debug(
-                        "Detected class; namespace={}, name={}",
-                        ontClass.nameSpace,
-                        ontClass.localName,
-                    )
-                }.toSet()
-
-        val classes =
-            ontClassesInNamespace
-                .asSequence()
-                .filter { it.superClass?.nameSpace != ontologyNamespace }
-                .map { ontClass -> Class(ontClass.nameSpace, ontClass.localName) }
-                .map { it.withChildren(it.findChildClasses(ontClassesInNamespace)) }
-                .toSet()
-
-        return Ontology(classes)
+                    Ontology(classes)
+                }
     }
 
     private fun Class.findChildClasses(ontClassesInNamespace: Collection<OntClass>): Collection<Class> =

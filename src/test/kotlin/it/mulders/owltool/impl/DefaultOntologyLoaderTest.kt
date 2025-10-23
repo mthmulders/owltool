@@ -5,6 +5,7 @@ import assertk.assertions.hasSize
 import assertk.assertions.isInstanceOf
 import it.mulders.owltool.EXAMPLE_NAMESPACE
 import it.mulders.owltool.model.Ontology
+import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
 
@@ -20,7 +21,10 @@ class DefaultOntologyLoaderTest {
         val result = loader.load(input, EXAMPLE_NAMESPACE)
 
         // Assert
-        assertThat(result).isInstanceOf(Ontology::class.java)
+        result.fold(
+            onSuccess = { ontology -> assertThat(ontology).isInstanceOf(Ontology::class.java) },
+            onFailure = { t -> fail("Loading ontology failed: ${t.message}") }
+        )
     }
 
     @Test
@@ -32,7 +36,10 @@ class DefaultOntologyLoaderTest {
         val result = loader.load(input, EXAMPLE_NAMESPACE)
 
         // Assert
-        assertThat(result.classes).hasSize(1)
+        result.fold(
+            onSuccess = { ontology -> assertThat(ontology.classes).hasSize(1) },
+            onFailure = { t -> fail("Loading ontology failed: ${t.message}") }
+        )
     }
 
     @Test
@@ -44,7 +51,12 @@ class DefaultOntologyLoaderTest {
         val result = loader.load(input, EXAMPLE_NAMESPACE)
 
         // Assert
-        val patientClass = result.classes.single { it.name == "Person" }
-        assertThat(patientClass.children).hasSize(1)
+        result.fold(
+            onSuccess = { ontology ->
+                val patientClass = ontology.classes.single { it.name == "Person" }
+                assertThat(patientClass.children).hasSize(1)
+            },
+            onFailure = { t -> fail("Loading ontology failed: ${t.message}") }
+        )
     }
 }

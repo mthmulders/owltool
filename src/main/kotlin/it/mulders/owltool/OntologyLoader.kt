@@ -7,5 +7,5 @@ fun interface OntologyLoader {
     fun load(
         input: InputStream,
         ontologyNamespace: String,
-    ): Ontology
+    ): Result<Ontology>
 }
