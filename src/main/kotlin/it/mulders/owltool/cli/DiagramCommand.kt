@@ -31,18 +31,19 @@ class DiagramCommand(
     lateinit var namespace: String
 
     override fun run() {
-        val path = Path(System.getProperty("user.dir"), input)
+        val inputPath = Path(input)
+        val resolvedPath = if (inputPath.isAbsolute) inputPath else Path(System.getProperty("user.dir"), input)
 
         val normalizedNamespace = if (!namespace.endsWith("#")) "$namespace#" else namespace
 
-        if (!Files.exists(path)) {
-            log.error("The specified input file [{}] does not exist", path)
+        if (!Files.exists(resolvedPath)) {
+            log.error("The specified input file [{}] does not exist", resolvedPath)
             return
         }
 
-        log.info("Generating diagram; input={}, namespace={}", path, normalizedNamespace)
+        log.info("Generating diagram; input={}, namespace={}", resolvedPath, normalizedNamespace)
 
-        val result = generator.generateDiagram(path, normalizedNamespace)
+        val result = generator.generateDiagram(resolvedPath, normalizedNamespace)
         result.map { log.info("Generated diagram in {}", it.toAbsolutePath()) }
     }
 

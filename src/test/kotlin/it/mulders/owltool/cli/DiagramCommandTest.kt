@@ -18,8 +18,6 @@ class DiagramCommandTest {
         val generator = DiagramGenerator { path, namespace ->
             // Assert
             invoked = true
-            assertThat(path).isEqualTo(inputPath.toAbsolutePath())
-            assertThat(namespace).isEqualTo(EXAMPLE_NAMESPACE)
             Result.success(outputPath)
         }
 
@@ -49,7 +47,41 @@ class DiagramCommandTest {
             input = inputPath.toString()
             namespace = "http://purl.org/net/ns/ex" // Note missing # at end
         }.run()
+    }
 
-        // Assert
+    @Test
+    fun `should load relative input files`() {
+        // Arrange
+        val inputPath = Path("target", "test-classes", "ontologies", "simple.puml")
+        val outputPath = Path("java.io.tmpdir", "output.puml")
+        val generator = DiagramGenerator { path, namespace ->
+            // Assert
+            assertThat(path).isEqualTo(inputPath.toAbsolutePath())
+            Result.success(outputPath)
+        }
+
+        // Act
+        DiagramCommand(generator).apply {
+            input = inputPath.toString()
+            namespace = "http://purl.org/net/ns/ex#"
+        }.run()
+    }
+
+    @Test
+    fun `should load absolute input files`() {
+        // Arrange
+        val inputPath = Path(System.getProperty("user.dir"), "target", "test-classes", "ontologies", "simple.puml").toAbsolutePath()
+        val outputPath = Path("java.io.tmpdir", "output.puml")
+        val generator = DiagramGenerator { path, namespace ->
+            // Assert
+            assertThat(path).isEqualTo(inputPath)
+            Result.success(outputPath)
+        }
+
+        // Act
+        DiagramCommand(generator).apply {
+            input = inputPath.toString()
+            namespace = "http://purl.org/net/ns/ex#"
+        }.run()
     }
 }
