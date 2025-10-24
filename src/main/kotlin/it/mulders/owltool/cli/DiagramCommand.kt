@@ -32,7 +32,8 @@ class DiagramCommand(
 
     override fun run() {
         val inputPath = Path(input)
-        val resolvedPath = if (inputPath.isAbsolute) inputPath else Path(System.getProperty("user.dir"), input)
+        val resolvedPath =
+            if (inputPath.isAbsolute) inputPath else Path(System.getProperty("user.dir"), input)
 
         val normalizedNamespace = if (!namespace.endsWith("#")) "$namespace#" else namespace
 
