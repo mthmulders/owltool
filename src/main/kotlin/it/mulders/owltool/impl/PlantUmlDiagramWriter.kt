@@ -31,13 +31,17 @@ class PlantUmlDiagramWriter : DiagramWriter {
     }
 
     private fun BufferedWriter.writeClassToDiagram(clazz: Class) {
-        writeLn("class ${clazz.name} {")
+        val name = if (clazz.isAnonymous()) "_" else clazz.name
+        val stereotype = if (clazz.isAnonymous()) "<<anonymous>>" else ""
+        val identifier = clazz.identifier
+
+        writeLn("class $identifier as \"$name\" $stereotype {")
         writeLn("}")
         newLine()
 
         clazz.children.forEach {
             writeClassToDiagram(it)
-            writeLn("${clazz.name} <|-- ${it.name}")
+            writeLn("$identifier <|-- ${it.identifier}")
             newLine()
         }
     }

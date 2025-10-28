@@ -10,18 +10,18 @@ class OntologyTest {
     fun `should recursively count classes`() {
         // Arrange
         val roots = setOf(
-            Class(EXAMPLE_NAMESPACE, "root-1", setOf(
-                Class(EXAMPLE_NAMESPACE, "root-1-a", setOf(
-                    Class(EXAMPLE_NAMESPACE, "root-1-a-i"),
-                    Class(EXAMPLE_NAMESPACE, "root-1-a-ii")
+            Class.of(EXAMPLE_NAMESPACE, "root-1", setOf(
+                Class.of(EXAMPLE_NAMESPACE, "root-1-a", setOf(
+                    Class.of(EXAMPLE_NAMESPACE, "root-1-a-i"),
+                    Class.of(EXAMPLE_NAMESPACE, "root-1-a-ii")
                 )),
-                Class(EXAMPLE_NAMESPACE, "root-1-b"),
-                Class(EXAMPLE_NAMESPACE, "root-1-c")
+                Class.of(EXAMPLE_NAMESPACE, "root-1-b"),
+                Class.of(EXAMPLE_NAMESPACE, "root-1-c")
             )),
-            Class(EXAMPLE_NAMESPACE, "root-2", setOf(
-                Class(EXAMPLE_NAMESPACE, "root-2-a")
+            Class.of(EXAMPLE_NAMESPACE, "root-2", setOf(
+                Class.of(EXAMPLE_NAMESPACE, "root-2-a")
             )),
-            Class(EXAMPLE_NAMESPACE, "root-3")
+            Class.of(EXAMPLE_NAMESPACE, "root-3")
         )
         val ontology = Ontology(roots)
 

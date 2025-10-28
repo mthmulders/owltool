@@ -34,14 +34,15 @@ class DefaultOntologyLoader : OntologyLoader {
                             it.nameSpace,
                             it.localName,
                         )
-                    }.map { Class(it.nameSpace, it.localName).withChildren(it.findChildClasses(model)) }
-                    .toSet()
+                    }.map {
+                        Class.of(it.nameSpace, it.localName).withChildren(it.findChildClasses(model))
+                    }.toSet()
             }.map { Ontology(it) }
 
     private fun OntClass.findChildClasses(model: OntModel): Collection<Class> =
         subClasses(true)
             .asSequence()
-            .map { Class(it.nameSpace, it.localName).withChildren(it.findChildClasses(model)) }
+            .map { Class.of(it.nameSpace, it.localName).withChildren(it.findChildClasses(model)) }
             .toSet()
 
     private fun <T> Optional<T>.unwrap(): T? = orElse(null)

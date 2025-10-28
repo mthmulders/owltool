@@ -1,5 +1,6 @@
 package it.mulders.owltool.impl
 
+import assertk.all
 import assertk.assertThat
 import assertk.assertions.contains
 import it.mulders.owltool.EXAMPLE_NAMESPACE
@@ -38,13 +39,13 @@ class PlantUmlDiagramWriterTest {
     @Test
     fun `should write single class`() {
         // Arrange
-        val ontology = Ontology(setOf(Class(EXAMPLE_NAMESPACE, "Single")))
+        val ontology = Ontology(setOf(Class.of(EXAMPLE_NAMESPACE, "Single")))
 
         // Act
         val diagram = ontology.generateDiagram()
 
         // Assert
-        assertThat(diagram).contains("class Single {")
+        assertThat(diagram).contains("class single as \"Single\"")
     }
 
     @Test
@@ -52,15 +53,41 @@ class PlantUmlDiagramWriterTest {
         // Arrange
         val ontology = Ontology(
             setOf(
-                Class(EXAMPLE_NAMESPACE, "Parent", setOf(
-                    Class(EXAMPLE_NAMESPACE, "Child")
+                Class.of(EXAMPLE_NAMESPACE, "Parent", setOf(
+                    Class.of(EXAMPLE_NAMESPACE, "Child")
             ))))
 
         // Act
         val diagram = ontology.generateDiagram()
 
         // Assert
-        assertThat(diagram).contains("Parent <|-- Child")
+        assertThat(diagram).contains("parent <|-- child")
+    }
+
+    @Test
+    fun `should assign identifier to named class`() {
+        // Arrange
+        val ontology = Ontology(setOf(Class.of(EXAMPLE_NAMESPACE, "NamedClass")))
+
+        // Act
+        val diagram = ontology.generateDiagram()
+
+        // Assert
+        assertThat(diagram).contains("class namedclass as \"NamedClass\"")
+    }
+
+    @Test
+    fun `should assign identifier to anonymous class`() {
+        // Arrange
+        val ontology = Ontology(setOf(Class.of(null, null)))
+
+        // Act
+        val diagram = ontology.generateDiagram()
+
+        // Assert
+        assertThat(diagram).all {
+            contains("as \"_\" <<anonymous>>")
+        }
     }
 
     private fun Ontology.generateDiagram(): String = ByteArrayOutputStream().use { stream ->
