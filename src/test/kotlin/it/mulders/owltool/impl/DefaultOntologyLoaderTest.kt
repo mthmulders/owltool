@@ -41,7 +41,7 @@ class DefaultOntologyLoaderTest {
 
         // Assert
         result.fold(
-            onSuccess = { ontology -> assertThat(ontology.classes).hasSize(1) },
+            onSuccess = { ontology -> assertThat(ontology.rootClasses()).hasSize(1) },
             onFailure = { t -> fail("Loading ontology failed: ${t.message}") }
         )
     }
@@ -57,7 +57,7 @@ class DefaultOntologyLoaderTest {
         // Assert
         result.fold(
             onSuccess = { ontology ->
-                val patientClass = ontology.classes.single { it.name == "Person" }
+                val patientClass = ontology.rootClasses().single { it.name == "Person" }
                 assertThat(patientClass.children).hasSize(1)
             },
             onFailure = { t -> fail("Loading ontology failed: ${t.message}") }
@@ -75,7 +75,7 @@ class DefaultOntologyLoaderTest {
         // Assert
         result.fold(
             onSuccess = { ontology ->
-                val personClass = ontology.classes.single { it.name == "Person" }
+                val personClass = ontology.allClasses().single { it.name == "Person" }
                 assertThat(personClass.properties).containsOnly(
                     Property("hasBirthDate", "xsd:date")
                 )

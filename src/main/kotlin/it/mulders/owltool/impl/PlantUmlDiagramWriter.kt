@@ -24,7 +24,7 @@ class PlantUmlDiagramWriter : DiagramWriter {
         newLine()
         newLine()
 
-        ontology.classes.forEach { clazz -> writeClassToDiagram(clazz) }
+        ontology.rootClasses().forEach { clazz -> writeClassToDiagram(clazz) }
 
         write("@enduml")
         newLine()
