@@ -4,12 +4,14 @@ import assertk.assertThat
 import assertk.assertions.containsOnly
 import assertk.assertions.hasSize
 import assertk.assertions.isInstanceOf
+import assertk.assertions.isNotNull
 import it.mulders.owltool.EXAMPLE_NAMESPACE
 import it.mulders.owltool.model.Ontology
 import it.mulders.owltool.model.Property
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
+import java.io.InputStream
 
 class DefaultOntologyLoaderTest {
     private val loader = DefaultOntologyLoader()
@@ -32,7 +34,7 @@ class DefaultOntologyLoaderTest {
     @Test
     fun `should load root classes from input`() {
         // Arrange
-        val input = DefaultOntologyLoaderTest::class.java.getResourceAsStream("/ontologies/simple.ttl")
+        val input = loadResource("/ontologies/simple.ttl")
 
         // Act
         val result = loader.load(input, EXAMPLE_NAMESPACE)
@@ -47,7 +49,7 @@ class DefaultOntologyLoaderTest {
     @Test
     fun `should discover parent-child relations between classes`() {
         // Arrange
-        val input = DefaultOntologyLoaderTest::class.java.getResourceAsStream("/ontologies/simple.ttl")
+        val input = loadResource("/ontologies/simple.ttl")
 
         // Act
         val result = loader.load(input, EXAMPLE_NAMESPACE)
@@ -65,7 +67,7 @@ class DefaultOntologyLoaderTest {
     @Test
     fun `should discover datatype properties of classes`() {
         // Arrange
-        val input = DefaultOntologyLoaderTest::class.java.getResourceAsStream("/ontologies/simple.ttl")
+        val input = loadResource("/ontologies/simple.ttl")
 
         // Act
         val result = loader.load(input, EXAMPLE_NAMESPACE)
@@ -80,5 +82,11 @@ class DefaultOntologyLoaderTest {
             },
             onFailure = { t -> fail("Loading ontology failed: ${t.message}") }
         )
+    }
+
+    private fun loadResource(resourcePath: String): InputStream {
+        val result = DefaultOntologyLoaderTest::class.java.getResourceAsStream(resourcePath)
+        assertThat(result).isNotNull()
+        return result!!
     }
 }
