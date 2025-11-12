@@ -3,15 +3,19 @@ package it.mulders.owltool.impl
 import it.mulders.owltool.OntologyLoader
 import it.mulders.owltool.model.Class
 import it.mulders.owltool.model.Ontology
+import it.mulders.owltool.model.Property
 import jakarta.enterprise.context.ApplicationScoped
 import org.apache.jena.ontapi.OntModelFactory
 import org.apache.jena.ontapi.OntSpecification
 import org.apache.jena.ontapi.model.OntClass
+import org.apache.jena.ontapi.model.OntDataProperty
+import org.apache.jena.ontapi.model.OntDataRange
 import org.apache.jena.ontapi.model.OntModel
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.Optional
+import java.util.stream.Collectors.joining
 import kotlin.streams.asSequence
 
 @ApplicationScoped
@@ -35,7 +39,10 @@ class DefaultOntologyLoader : OntologyLoader {
                             it.localName,
                         )
                     }.map {
-                        Class.of(it.nameSpace, it.localName).withChildren(it.findChildClasses(model))
+                        Class
+                            .of(it.nameSpace, it.localName)
+                            .withChildren(it.findChildClasses(model))
+                            .withProperties(it.findDatatypeProperties(model))
                     }.toSet()
             }.map { Ontology(it) }
 
@@ -44,6 +51,26 @@ class DefaultOntologyLoader : OntologyLoader {
             .asSequence()
             .map { Class.of(it.nameSpace, it.localName).withChildren(it.findChildClasses(model)) }
             .toSet()
+
+    private fun OntClass.findDatatypeProperties(model: OntModel): Collection<Property> =
+        model
+            .dataProperties()
+            .asSequence()
+            .filter { property -> property.targetsOntClass(this) }
+            .map {
+                Property(
+                    it.localName,
+                    it.ranges().map { r -> r.toOntologyDataType(model) }.collect(joining(",")),
+                )
+            }.toSet()
+
+    private fun OntDataProperty.targetsOntClass(clazz: OntClass): Boolean =
+        this.domains().anyMatch { it.nameSpace == clazz.nameSpace && it.localName == clazz.localName }
+
+    private fun OntDataRange.toOntologyDataType(model: OntModel): String {
+        val namespacePrefix = model.getNsURIPrefix(this.nameSpace).let { "$it" }
+        return "$namespacePrefix:${this.localName}"
+    }
 
     private fun <T> Optional<T>.unwrap(): T? = orElse(null)
 

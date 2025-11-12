@@ -10,8 +10,13 @@ data class Class
         val namespace: String?,
         val name: String?,
         val children: Collection<Class> = emptySet(),
+        val properties: Collection<Property> = emptySet(),
     ) {
         fun withChildren(children: Collection<Class>) = Class(identifier, namespace, name, children)
+
+        fun withProperty(property: Property) = Class(identifier, namespace, name, children, this.properties + property)
+
+        fun withProperties(properties: Collection<Property>) = Class(identifier, namespace, name, children, this.properties + properties)
 
         fun isAnonymous(): Boolean = name == null
 

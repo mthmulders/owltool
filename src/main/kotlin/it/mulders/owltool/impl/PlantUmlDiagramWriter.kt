@@ -36,6 +36,7 @@ class PlantUmlDiagramWriter : DiagramWriter {
         val identifier = clazz.identifier
 
         writeLn("class $identifier as \"$name\" $stereotype {")
+        clazz.properties.forEach { property -> writeLn("+ ${property.name} : ${property.dataType}") }
         writeLn("}")
         newLine()
 
