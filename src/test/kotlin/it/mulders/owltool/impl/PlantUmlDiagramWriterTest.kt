@@ -95,7 +95,7 @@ class PlantUmlDiagramWriterTest {
     fun `should write data property as field`() {
         // Arrange
         val ontology = Ontology(setOf(
-            Class.of("EXAMPLE_NAMESPACE", "ClassWithProperty").withProperty(
+            Class.of(EXAMPLE_NAMESPACE, "ClassWithProperty").withProperty(
                 Property("age", "xsd:integer")
             )
         ))
