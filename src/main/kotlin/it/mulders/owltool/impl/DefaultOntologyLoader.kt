@@ -49,7 +49,9 @@ class DefaultOntologyLoader : OntologyLoader {
     private fun OntClass.findChildClasses(model: OntModel): Collection<Class> =
         subClasses(true)
             .asSequence()
-            .map { Class.of(it.nameSpace, it.localName).withChildren(it.findChildClasses(model)) }
+            .map { Class.of(it.nameSpace, it.localName)
+                .withChildren(it.findChildClasses(model))
+                .withProperties(it.findDatatypeProperties(model)) }
             .toSet()
 
     private fun OntClass.findDatatypeProperties(model: OntModel): Collection<Property> =
