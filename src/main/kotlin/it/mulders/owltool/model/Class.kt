@@ -12,7 +12,7 @@ data class Class
         val children: Collection<Class> = emptySet(),
         val properties: Collection<Property> = emptySet(),
     ) {
-        fun withChildren(children: Collection<Class>) = Class(identifier, namespace, name, children)
+        fun withChildren(children: Collection<Class>) = Class(identifier, namespace, name, children, properties)
 
         fun withProperty(property: Property) = Class(identifier, namespace, name, children, this.properties + property)
 
