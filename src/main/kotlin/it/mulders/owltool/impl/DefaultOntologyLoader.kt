@@ -68,7 +68,7 @@ class DefaultOntologyLoader : OntologyLoader {
         this.domains().anyMatch { it.nameSpace == clazz.nameSpace && it.localName == clazz.localName }
 
     private fun OntDataRange.toOntologyDataType(model: OntModel): String {
-        val namespacePrefix = model.getNsURIPrefix(this.nameSpace).let { "$it" }
+        val namespacePrefix = model.getNsURIPrefix(this.nameSpace) ?: ""
         return "$namespacePrefix:${this.localName}"
     }
 
