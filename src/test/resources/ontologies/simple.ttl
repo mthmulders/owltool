@@ -24,6 +24,6 @@ ex:Patient
     rdfs:label      "A patient."@en .
 
 ex:hasPatientNumber
-    rdf:type	owl:DatatypeProperty ;
+    rdf:type    owl:DatatypeProperty ;
     rdfs:domain ex:Patient ;
     rdfs:range  xsd:string .
