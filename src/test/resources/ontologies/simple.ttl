@@ -13,7 +13,7 @@ ex:Person
     rdfs:label   "A person."@en .
 
 ex:hasBirthDate
-    rdf:type    owl:DatatypeProperty, owl:TransitiveProperty ;
+    rdf:type    owl:DatatypeProperty ;
     rdfs:domain ex:Person ;
     rdfs:range  xsd:date .
 
@@ -22,3 +22,8 @@ ex:Patient
     rdfs:subClassOf ex:Person ;
     rdfs:comment    "This class serves as input for a basic test case and does not aim to completely describe a Patient."@en ;
     rdfs:label      "A patient."@en .
+
+ex:hasPatientNumber
+    rdf:type	owl:DatatypeProperty ;
+    rdfs:domain ex:Patient ;
+    rdfs:range  xsd:string .

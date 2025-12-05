@@ -2,12 +2,12 @@ package it.mulders.owltool.impl
 
 import assertk.assertThat
 import assertk.assertions.containsOnly
+import assertk.assertions.extracting
 import assertk.assertions.hasSize
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNotNull
 import it.mulders.owltool.EXAMPLE_NAMESPACE
 import it.mulders.owltool.model.Ontology
-import it.mulders.owltool.model.Property
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
@@ -76,9 +76,13 @@ class DefaultOntologyLoaderTest {
         result.fold(
             onSuccess = { ontology ->
                 val personClass = ontology.allClasses().single { it.name == "Person" }
-                assertThat(personClass.properties).containsOnly(
-                    Property("hasBirthDate", "xsd:date")
-                )
+                assertThat(personClass.properties)
+                    .extracting { it.name }
+                    .containsOnly("hasBirthDate")
+                val patientClass = ontology.allClasses().single { it.name == "Patient" }
+                assertThat(patientClass.properties)
+                    .extracting { it.name }
+                    .containsOnly("hasPatientNumber")
             },
             onFailure = { t -> fail("Loading ontology failed: ${t.message}") }
         )

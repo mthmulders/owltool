@@ -58,7 +58,7 @@ class DefaultOntologyLoader : OntologyLoader {
         model
             .dataProperties()
             .asSequence()
-            .filter { property -> property.targetsOntClass(this) }
+            .filter { property -> property.isDefinedOnDomain(this) }
             .map {
                 Property(
                     it.localName,
@@ -66,7 +66,7 @@ class DefaultOntologyLoader : OntologyLoader {
                 )
             }.toSet()
 
-    private fun OntDataProperty.targetsOntClass(clazz: OntClass): Boolean =
+    private fun OntDataProperty.isDefinedOnDomain(clazz: OntClass): Boolean =
         this.domains().anyMatch { it.nameSpace == clazz.nameSpace && it.localName == clazz.localName }
 
     private fun OntDataRange.toOntologyDataType(model: OntModel): String {
