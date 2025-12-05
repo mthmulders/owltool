@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.Optional
-import java.util.stream.Collectors.joining
 import kotlin.streams.asSequence
 
 @ApplicationScoped
@@ -64,7 +63,11 @@ class DefaultOntologyLoader : OntologyLoader {
             .map {
                 Property(
                     it.localName,
-                    it.ranges().map { r -> r.toOntologyDataType(model) }.collect(joining(",")),
+                    it
+                        .ranges()
+                        .asSequence()
+                        .map { r -> r.toOntologyDataType(model) }
+                        .joinToString(","),
                 )
             }.toSet()
 
