@@ -3,10 +3,13 @@ package it.mulders.owltool.impl
 import it.mulders.owltool.OntologyLoader
 import it.mulders.owltool.model.Class
 import it.mulders.owltool.model.Ontology
+import it.mulders.owltool.model.Property
 import jakarta.enterprise.context.ApplicationScoped
 import org.apache.jena.ontapi.OntModelFactory
 import org.apache.jena.ontapi.OntSpecification
 import org.apache.jena.ontapi.model.OntClass
+import org.apache.jena.ontapi.model.OntDataProperty
+import org.apache.jena.ontapi.model.OntDataRange
 import org.apache.jena.ontapi.model.OntModel
 import org.slf4j.LoggerFactory
 import java.io.InputStream
@@ -35,15 +38,50 @@ class DefaultOntologyLoader : OntologyLoader {
                             it.localName,
                         )
                     }.map {
-                        Class.of(it.nameSpace, it.localName).withChildren(it.findChildClasses(model))
+                        Class
+                            .of(it.nameSpace, it.localName)
+                            .withChildren(it.findChildClasses(model))
+                            .withProperties(it.findDatatypeProperties(model))
                     }.toSet()
             }.map { Ontology(it) }
 
     private fun OntClass.findChildClasses(model: OntModel): Collection<Class> =
         subClasses(true)
             .asSequence()
-            .map { Class.of(it.nameSpace, it.localName).withChildren(it.findChildClasses(model)) }
-            .toSet()
+            .map {
+                Class
+                    .of(it.nameSpace, it.localName)
+                    .withChildren(it.findChildClasses(model))
+                    .withProperties(it.findDatatypeProperties(model))
+            }.toSet()
+
+    private fun OntClass.findDatatypeProperties(model: OntModel): Collection<Property> =
+        model
+            .dataProperties()
+            .asSequence()
+            .filter { property -> property.isDefinedOnDomain(this) }
+            .map {
+                Property(
+                    it.localName,
+                    it
+                        .ranges()
+                        .asSequence()
+                        .map { r -> r.toOntologyDataType(model) }
+                        .joinToString(","),
+                )
+            }.toSet()
+
+    private fun OntDataProperty.isDefinedOnDomain(clazz: OntClass): Boolean =
+        this.domains().anyMatch { it.nameSpace == clazz.nameSpace && it.localName == clazz.localName }
+
+    private fun OntDataRange.toOntologyDataType(model: OntModel): String {
+        val namespacePrefix = model.getNsURIPrefix(this.nameSpace)
+        return if (namespacePrefix.isNullOrEmpty()) {
+            this.localName
+        } else {
+            "$namespacePrefix:${this.localName}"
+        }
+    }
 
     private fun <T> Optional<T>.unwrap(): T? = orElse(null)
 

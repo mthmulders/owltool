@@ -1,13 +1,17 @@
 package it.mulders.owltool.impl
 
 import assertk.assertThat
+import assertk.assertions.containsOnly
+import assertk.assertions.extracting
 import assertk.assertions.hasSize
 import assertk.assertions.isInstanceOf
+import assertk.assertions.isNotNull
 import it.mulders.owltool.EXAMPLE_NAMESPACE
 import it.mulders.owltool.model.Ontology
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
+import java.io.InputStream
 
 class DefaultOntologyLoaderTest {
     private val loader = DefaultOntologyLoader()
@@ -30,14 +34,14 @@ class DefaultOntologyLoaderTest {
     @Test
     fun `should load root classes from input`() {
         // Arrange
-        val input = DefaultOntologyLoaderTest::class.java.getResourceAsStream("/ontologies/simple.ttl")
+        val input = loadResource("/ontologies/simple.ttl")
 
         // Act
         val result = loader.load(input, EXAMPLE_NAMESPACE)
 
         // Assert
         result.fold(
-            onSuccess = { ontology -> assertThat(ontology.classes).hasSize(1) },
+            onSuccess = { ontology -> assertThat(ontology.rootClasses()).hasSize(1) },
             onFailure = { t -> fail("Loading ontology failed: ${t.message}") }
         )
     }
@@ -45,7 +49,7 @@ class DefaultOntologyLoaderTest {
     @Test
     fun `should discover parent-child relations between classes`() {
         // Arrange
-        val input = DefaultOntologyLoaderTest::class.java.getResourceAsStream("/ontologies/simple.ttl")
+        val input = loadResource("/ontologies/simple.ttl")
 
         // Act
         val result = loader.load(input, EXAMPLE_NAMESPACE)
@@ -53,10 +57,40 @@ class DefaultOntologyLoaderTest {
         // Assert
         result.fold(
             onSuccess = { ontology ->
-                val patientClass = ontology.classes.single { it.name == "Person" }
+                val patientClass = ontology.rootClasses().single { it.name == "Person" }
                 assertThat(patientClass.children).hasSize(1)
             },
             onFailure = { t -> fail("Loading ontology failed: ${t.message}") }
         )
+    }
+
+    @Test
+    fun `should discover datatype properties of classes`() {
+        // Arrange
+        val input = loadResource("/ontologies/simple.ttl")
+
+        // Act
+        val result = loader.load(input, EXAMPLE_NAMESPACE)
+
+        // Assert
+        result.fold(
+            onSuccess = { ontology ->
+                val personClass = ontology.allClasses().single { it.name == "Person" }
+                assertThat(personClass.properties)
+                    .extracting { it.name }
+                    .containsOnly("hasBirthDate")
+                val patientClass = ontology.allClasses().single { it.name == "Patient" }
+                assertThat(patientClass.properties)
+                    .extracting { it.name }
+                    .containsOnly("hasPatientNumber")
+            },
+            onFailure = { t -> fail("Loading ontology failed: ${t.message}") }
+        )
+    }
+
+    private fun loadResource(resourcePath: String): InputStream {
+        val result = DefaultOntologyLoaderTest::class.java.getResourceAsStream(resourcePath)
+        assertThat(result).isNotNull()
+        return result!!
     }
 }

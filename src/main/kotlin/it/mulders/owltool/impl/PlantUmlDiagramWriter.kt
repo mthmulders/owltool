@@ -24,7 +24,7 @@ class PlantUmlDiagramWriter : DiagramWriter {
         newLine()
         newLine()
 
-        ontology.classes.forEach { clazz -> writeClassToDiagram(clazz) }
+        ontology.rootClasses().forEach { clazz -> writeClassToDiagram(clazz) }
 
         write("@enduml")
         newLine()
@@ -36,6 +36,7 @@ class PlantUmlDiagramWriter : DiagramWriter {
         val identifier = clazz.identifier
 
         writeLn("class $identifier as \"$name\" $stereotype {")
+        clazz.properties.forEach { property -> writeLn("+ ${property.name} : ${property.dataType}") }
         writeLn("}")
         newLine()
 
