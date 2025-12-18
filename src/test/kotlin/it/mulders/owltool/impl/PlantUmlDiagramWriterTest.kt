@@ -6,6 +6,7 @@ import assertk.assertions.contains
 import it.mulders.owltool.EXAMPLE_NAMESPACE
 import it.mulders.owltool.model.Class
 import it.mulders.owltool.model.Ontology
+import it.mulders.owltool.model.Property
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayOutputStream
 
@@ -88,6 +89,22 @@ class PlantUmlDiagramWriterTest {
         assertThat(diagram).all {
             contains("as \"_\" <<anonymous>>")
         }
+    }
+
+    @Test
+    fun `should write data property as field`() {
+        // Arrange
+        val ontology = Ontology(setOf(
+            Class.of(EXAMPLE_NAMESPACE, "ClassWithProperty").withProperty(
+                Property("age", "xsd:integer")
+            )
+        ))
+
+        // Act
+        val diagram = ontology.generateDiagram()
+
+        // Assert
+        assertThat(diagram).contains("+ age : xsd:integer")
     }
 
     private fun Ontology.generateDiagram(): String = ByteArrayOutputStream().use { stream ->
