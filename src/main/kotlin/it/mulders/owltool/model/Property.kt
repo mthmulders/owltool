@@ -22,10 +22,10 @@ data class DatatypeProperty(
 data class ObjectProperty(
     override val name: String,
     val ontologyClass: Class,
-    val typeNamespacePrefix: String,
+    val typeNamespacePrefix: String?,
 ) : Property {
     override fun dataType(): String =
-        if (typeNamespacePrefix.isEmpty()) {
+        if (typeNamespacePrefix.isNullOrEmpty()) {
             ontologyClass.name ?: ontologyClass.identifier
         } else {
             "$typeNamespacePrefix:${ontologyClass.name}"
