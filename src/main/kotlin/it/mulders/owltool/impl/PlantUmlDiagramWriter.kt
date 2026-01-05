@@ -39,7 +39,12 @@ class PlantUmlDiagramWriter : DiagramWriter {
 
         writeLn("class $identifier as \"$name\" $stereotype {")
         clazz.properties.filterIsInstance<DatatypeProperty>().forEach { property ->
-            writeLn("+ ${property.name} : ${property.dataType()}")
+            val dataType = if (property.typeNamespacePrefix.isEmpty()) {
+                property.typeLocalName
+            } else {
+                "$property.typeNamespacePrefix:${property.typeLocalName}"
+            }
+            writeLn("+ ${property.name} : $dataType")
         }
         writeLn("}")
         newLine()
