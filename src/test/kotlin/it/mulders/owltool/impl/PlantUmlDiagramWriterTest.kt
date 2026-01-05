@@ -96,7 +96,7 @@ class PlantUmlDiagramWriterTest {
         // Arrange
         val ontology = Ontology(setOf(
             Class.of(EXAMPLE_NAMESPACE, "ClassWithProperty").withProperty(
-                DatatypeProperty("age", "xsd", "integer")
+                DatatypeProperty("age", "integer", "xsd")
             )
         ))
 
