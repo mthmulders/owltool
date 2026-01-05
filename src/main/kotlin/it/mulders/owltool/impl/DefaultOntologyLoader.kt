@@ -2,6 +2,8 @@ package it.mulders.owltool.impl
 
 import it.mulders.owltool.OntologyLoader
 import it.mulders.owltool.model.Class
+import it.mulders.owltool.model.DatatypeProperty
+import it.mulders.owltool.model.ObjectProperty
 import it.mulders.owltool.model.Ontology
 import it.mulders.owltool.model.Property
 import jakarta.enterprise.context.ApplicationScoped
@@ -11,6 +13,7 @@ import org.apache.jena.ontapi.model.OntClass
 import org.apache.jena.ontapi.model.OntDataProperty
 import org.apache.jena.ontapi.model.OntDataRange
 import org.apache.jena.ontapi.model.OntModel
+import org.apache.jena.ontapi.model.OntObjectProperty
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -42,6 +45,7 @@ class DefaultOntologyLoader : OntologyLoader {
                             .of(it.nameSpace, it.localName)
                             .withChildren(it.findChildClasses(model))
                             .withProperties(it.findDatatypeProperties(model))
+                            .withProperties(it.findObjectProperties(model))
                     }.toSet()
             }.map { Ontology(it) }
 
@@ -53,6 +57,21 @@ class DefaultOntologyLoader : OntologyLoader {
                     .of(it.nameSpace, it.localName)
                     .withChildren(it.findChildClasses(model))
                     .withProperties(it.findDatatypeProperties(model))
+                    .withProperties(it.findObjectProperties(model))
+            }.toSet()
+
+    private fun OntClass.findObjectProperties(model: OntModel): Collection<Property> = model.objectProperties()
+            .asSequence()
+            .filter { property -> property.isDefinedOnDomain(this) }
+            .flatMap { property ->
+                property.ranges().map { range ->
+                    ObjectProperty(
+                        property.localName,
+                        Class.of(range.nameSpace, range.localName),
+                        model.getNsURIPrefix(range.nameSpace),
+                    )
+                }
+                .asSequence()
             }.toSet()
 
     private fun OntClass.findDatatypeProperties(model: OntModel): Collection<Property> =
@@ -82,6 +101,9 @@ class DefaultOntologyLoader : OntologyLoader {
             "$namespacePrefix:${this.localName}"
         }
     }
+
+    private fun OntObjectProperty.isDefinedOnDomain(clazz: OntClass): Boolean =
+        this.domains().anyMatch { it.nameSpace == clazz.nameSpace && it.localName == clazz.localName }
 
     private fun <T> Optional<T>.unwrap(): T? = orElse(null)
 

@@ -88,6 +88,26 @@ class DefaultOntologyLoaderTest {
         )
     }
 
+    @Test
+    fun `should discover object properties of classes`() {
+        // Arrange
+        val input = loadResource("/ontologies/relations.ttl")
+
+        // Act
+        val result = loader.load(input, EXAMPLE_NAMESPACE)
+
+        // Assert
+        result.fold(
+            onSuccess = { ontology ->
+                val personClass = ontology.allClasses().single { it.name == "Person" }
+                assertThat(personClass.properties)
+                    .extracting { it.name }
+                    .containsOnly("knows")
+            },
+            onFailure = { t -> fail("Loading ontology failed: ${t.message}") }
+        )
+    }
+
     private fun loadResource(resourcePath: String): InputStream {
         val result = DefaultOntologyLoaderTest::class.java.getResourceAsStream(resourcePath)
         assertThat(result).isNotNull()

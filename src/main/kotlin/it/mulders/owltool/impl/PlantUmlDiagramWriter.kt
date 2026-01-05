@@ -2,6 +2,8 @@ package it.mulders.owltool.impl
 
 import it.mulders.owltool.DiagramWriter
 import it.mulders.owltool.model.Class
+import it.mulders.owltool.model.DatatypeProperty
+import it.mulders.owltool.model.ObjectProperty
 import it.mulders.owltool.model.Ontology
 import jakarta.enterprise.context.ApplicationScoped
 import java.io.BufferedWriter
@@ -36,9 +38,16 @@ class PlantUmlDiagramWriter : DiagramWriter {
         val identifier = clazz.identifier
 
         writeLn("class $identifier as \"$name\" $stereotype {")
-        clazz.properties.forEach { property -> writeLn("+ ${property.name} : ${property.dataType}") }
+        clazz.properties.filterIsInstance<DatatypeProperty>().forEach { property ->
+            writeLn("+ ${property.name} : ${property.dataType()}")
+        }
         writeLn("}")
         newLine()
+
+        clazz.properties.filterIsInstance<ObjectProperty>().forEach { property ->
+            writeLn("$identifier --> ${property.ontologyClass.identifier} : ${property.name}")
+            newLine()
+        }
 
         clazz.children.forEach {
             writeClassToDiagram(it)
