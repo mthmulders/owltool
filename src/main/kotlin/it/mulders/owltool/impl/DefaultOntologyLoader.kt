@@ -87,7 +87,7 @@ class DefaultOntologyLoader : OntologyLoader {
                         DatatypeProperty(
                             property.localName,
                             range.localName,
-                            model.getNsURIPrefix(range.nameSpace),
+                            model.getNsURIPrefix(range.nameSpace) ?: "",
                         )
                     }.asSequence()
             }.toSet()
