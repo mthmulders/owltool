@@ -11,13 +11,12 @@ data class DatatypeProperty(
     val typeLocalName: String,
     val typeNamespacePrefix: String,
 ) : Property {
-    override fun dataType(): String {
-        return if (typeNamespacePrefix.isEmpty()) {
+    override fun dataType(): String =
+        if (typeNamespacePrefix.isEmpty()) {
             this.typeLocalName
         } else {
             "$typeNamespacePrefix:${this.typeLocalName}"
         }
-    }
 }
 
 data class ObjectProperty(
@@ -25,11 +24,10 @@ data class ObjectProperty(
     val ontologyClass: Class,
     val typeNamespacePrefix: String,
 ) : Property {
-    override fun dataType(): String {
-        return if (typeNamespacePrefix.isEmpty()) {
+    override fun dataType(): String =
+        if (typeNamespacePrefix.isEmpty()) {
             ontologyClass.name ?: ontologyClass.identifier
         } else {
             "$typeNamespacePrefix:${ontologyClass.name}"
         }
-    }
 }

@@ -58,18 +58,21 @@ class DefaultOntologyLoader : OntologyLoader {
                     .withProperties(it.findObjectProperties(model))
             }.toSet()
 
-    private fun OntClass.findObjectProperties(model: OntModel): Collection<Property> = model.objectProperties()
+    private fun OntClass.findObjectProperties(model: OntModel): Collection<Property> =
+        model
+            .objectProperties()
             .asSequence()
             .filter { property -> property.isDefinedOnDomain(this) }
             .flatMap { property ->
-                property.ranges().map { range ->
-                    ObjectProperty(
-                        property.localName,
-                        Class.of(range.nameSpace, range.localName),
-                        model.getNsURIPrefix(range.nameSpace),
-                    )
-                }
-                .asSequence()
+                property
+                    .ranges()
+                    .map { range ->
+                        ObjectProperty(
+                            property.localName,
+                            Class.of(range.nameSpace, range.localName),
+                            model.getNsURIPrefix(range.nameSpace),
+                        )
+                    }.asSequence()
             }.toSet()
 
     private fun OntClass.findDatatypeProperties(model: OntModel): Collection<Property> =
@@ -78,14 +81,15 @@ class DefaultOntologyLoader : OntologyLoader {
             .asSequence()
             .filter { property -> property.isDefinedOnDomain(this) }
             .flatMap { property ->
-                property.ranges().map { range ->
-                    DatatypeProperty(
-                        property.localName,
-                        range.localName,
-                        model.getNsURIPrefix(range.nameSpace),
-                    )
-                }
-                .asSequence()
+                property
+                    .ranges()
+                    .map { range ->
+                        DatatypeProperty(
+                            property.localName,
+                            range.localName,
+                            model.getNsURIPrefix(range.nameSpace),
+                        )
+                    }.asSequence()
             }.toSet()
 
     private fun OntDataProperty.isDefinedOnDomain(clazz: OntClass): Boolean =
