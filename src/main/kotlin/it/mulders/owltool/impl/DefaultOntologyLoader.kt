@@ -11,13 +11,11 @@ import org.apache.jena.ontapi.OntModelFactory
 import org.apache.jena.ontapi.OntSpecification
 import org.apache.jena.ontapi.model.OntClass
 import org.apache.jena.ontapi.model.OntDataProperty
-import org.apache.jena.ontapi.model.OntDataRange
 import org.apache.jena.ontapi.model.OntModel
 import org.apache.jena.ontapi.model.OntObjectProperty
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.util.Optional
 import kotlin.streams.asSequence
 
 @ApplicationScoped
@@ -79,33 +77,22 @@ class DefaultOntologyLoader : OntologyLoader {
             .dataProperties()
             .asSequence()
             .filter { property -> property.isDefinedOnDomain(this) }
-            .map {
-                Property(
-                    it.localName,
-                    it
-                        .ranges()
-                        .asSequence()
-                        .map { r -> r.toOntologyDataType(model) }
-                        .joinToString(","),
-                )
+            .flatMap { property ->
+                property.ranges().map { range ->
+                    DatatypeProperty(
+                        property.localName,
+                        range.localName,
+                        model.getNsURIPrefix(range.nameSpace),
+                    )
+                }
+                .asSequence()
             }.toSet()
 
     private fun OntDataProperty.isDefinedOnDomain(clazz: OntClass): Boolean =
         this.domains().anyMatch { it.nameSpace == clazz.nameSpace && it.localName == clazz.localName }
 
-    private fun OntDataRange.toOntologyDataType(model: OntModel): String {
-        val namespacePrefix = model.getNsURIPrefix(this.nameSpace)
-        return if (namespacePrefix.isNullOrEmpty()) {
-            this.localName
-        } else {
-            "$namespacePrefix:${this.localName}"
-        }
-    }
-
     private fun OntObjectProperty.isDefinedOnDomain(clazz: OntClass): Boolean =
         this.domains().anyMatch { it.nameSpace == clazz.nameSpace && it.localName == clazz.localName }
-
-    private fun <T> Optional<T>.unwrap(): T? = orElse(null)
 
     companion object {
         private val log = LoggerFactory.getLogger(DefaultOntologyLoader::class.java)
