@@ -9,9 +9,7 @@ import jakarta.enterprise.context.ApplicationScoped
 import org.apache.jena.ontapi.OntModelFactory
 import org.apache.jena.ontapi.OntSpecification
 import org.apache.jena.ontapi.model.OntClass
-import org.apache.jena.ontapi.model.OntDataProperty
 import org.apache.jena.ontapi.model.OntModel
-import org.apache.jena.ontapi.model.OntObjectProperty
 import org.apache.jena.rdf.model.Resource
 import org.slf4j.LoggerFactory
 import java.io.InputStream
