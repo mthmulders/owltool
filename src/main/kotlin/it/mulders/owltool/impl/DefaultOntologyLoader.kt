@@ -12,9 +12,12 @@ import org.apache.jena.ontapi.model.OntClass
 import org.apache.jena.ontapi.model.OntDataProperty
 import org.apache.jena.ontapi.model.OntModel
 import org.apache.jena.ontapi.model.OntObjectProperty
+import org.apache.jena.ontapi.model.OntProperty
+import org.apache.jena.rdf.model.Resource
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.io.InputStreamReader
+import kotlin.sequences.toSet
 import kotlin.streams.asSequence
 
 @ApplicationScoped
@@ -41,7 +44,7 @@ class DefaultOntologyLoader : OntologyLoader {
                         Class
                             .of(it.nameSpace, it.localName)
                             .withChildren(it.findChildClasses(model))
-                            .withProperties(it.findDatatypeProperties(model))
+                            .withProperties(it.findProperties(model))
                     }.toSet()
             }.map { Ontology(it) }
 
@@ -52,40 +55,34 @@ class DefaultOntologyLoader : OntologyLoader {
                 Class
                     .of(it.nameSpace, it.localName)
                     .withChildren(it.findChildClasses(model))
-                    .withProperties(it.findDatatypeProperties(model))
+                    .withProperties(it.findProperties(model))
             }.toSet()
 
-    private fun OntClass.findDatatypeProperties(model: OntModel): Collection<Property> =
-        model
-            .dataProperties()
-            .asSequence()
-            .filter { property -> property.isDefinedOnDomain(this) }
+    private fun Resource.prefixOrNamespace(): String = if (this.nameSpace.isNullOrEmpty()) {
+        ""
+    } else {
+        model.getNsURIPrefix(this.nameSpace) ?: this.nameSpace
+    }
+
+    private fun OntClass.findProperties(model: OntModel): Collection<Property> {
+        return this.properties().asSequence()
             .flatMap { property ->
-                property
-                    .domains()
-                    .asSequence()
-                    .onEach { log.info("    -> range: {}", it) }
-                    .map { domain ->
-                        log.debug(
-                            "Detected datatype property; name={}, domain={}:{}",
-                            property.localName,
-                            domain.nameSpace,
-                            domain.localName,
-                        )
-                        val prefix =
-                            if (domain.nameSpace.isNullOrEmpty()) {
-                                ""
-                            } else {
-                                model.getNsURIPrefix(domain.nameSpace) ?: ""
-                            }
+                property.ranges().asSequence()
+                    .onEach { range ->
+                        log.debug("Found property {} on class {} with range {}:{}", property.localName, this.localName, range.prefixOrNamespace(), range.localName)
+                    }
+                    .map { range ->
                         DatatypeProperty(
                             property.localName,
-                            model.nsPrefixMap.containsValue(domain.nameSpace),
-                            Class.of(domain.nameSpace, domain.localName),
-                            prefix,
+                            this.nameSpace == range.nameSpace,
+                            Class.of(range.nameSpace, range.localName),
+                            range.prefixOrNamespace(),
                         )
                     }
-            }.toSet()
+                    .toSet()
+            }
+            .toSet()
+    }
 
     private fun OntDataProperty.isDefinedOnDomain(clazz: OntClass): Boolean =
         this.domains().anyMatch { it.nameSpace == clazz.nameSpace && it.localName == clazz.localName }
