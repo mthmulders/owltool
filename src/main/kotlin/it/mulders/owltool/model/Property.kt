@@ -8,6 +8,6 @@ interface Property {
 data class DatatypeProperty(
     override val name: String,
     override val pointsToOntologyClass: Boolean,
-    val ontologyClass: Class,
+    val rangeType: Class,
     val typeNamespacePrefix: String,
 ) : Property

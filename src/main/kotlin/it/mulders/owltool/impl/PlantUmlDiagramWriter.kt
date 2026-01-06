@@ -40,9 +40,9 @@ class PlantUmlDiagramWriter : DiagramWriter {
 
     private fun DatatypeProperty.toPlantUmlType(): String =
         if (pointsToOntologyClass) {
-            this.ontologyClass.identifier
+            this.rangeType.identifier
         } else {
-            "$typeNamespacePrefix:${this.ontologyClass.identifier}"
+            "$typeNamespacePrefix:${this.rangeType.identifier}"
         }
 
     private fun BufferedWriter.writeClassToDiagram(clazz: Class) {
