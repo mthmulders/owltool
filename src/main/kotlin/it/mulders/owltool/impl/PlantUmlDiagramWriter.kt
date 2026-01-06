@@ -39,7 +39,7 @@ class PlantUmlDiagramWriter : DiagramWriter {
         }
 
     private fun DatatypeProperty.toPlantUmlType(): String =
-        if (inTargetNamespace || typeNamespacePrefix.isEmpty()) {
+        if (pointsToOntologyClass || typeNamespacePrefix.isEmpty()) {
             this.ontologyClass.identifier
         } else {
             "$typeNamespacePrefix:${this.ontologyClass.identifier}"
@@ -52,13 +52,13 @@ class PlantUmlDiagramWriter : DiagramWriter {
 
         writeLn("class $identifier as \"$name\" $stereotype {")
         clazz.properties
-            .filter { property -> !property.inTargetNamespace }
+            .filter { property -> !property.pointsToOntologyClass }
             .forEach { property -> writeLn("+ ${property.name} : ${property.toPlantUmlType()}") }
         writeLn("}")
         newLine()
 
         clazz.properties
-            .filter { property -> property.inTargetNamespace }
+            .filter { property -> property.pointsToOntologyClass }
             .forEach { property ->
                 writeLn("$identifier --> ${property.toPlantUmlType()} : ${property.name}")
                 newLine()
