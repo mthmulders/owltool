@@ -11,4 +11,3 @@ data class DatatypeProperty(
     val ontologyClass: Class,
     val typeNamespacePrefix: String,
 ) : Property
-

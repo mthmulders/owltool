@@ -55,8 +55,8 @@ class DefaultOntologyLoader : OntologyLoader {
                     .withProperties(it.findDatatypeProperties(model))
             }.toSet()
 
-    private fun OntClass.findDatatypeProperties(model: OntModel): Collection<Property> {
-        return model
+    private fun OntClass.findDatatypeProperties(model: OntModel): Collection<Property> =
+        model
             .dataProperties()
             .asSequence()
             .filter { property -> property.isDefinedOnDomain(this) }
@@ -70,9 +70,14 @@ class DefaultOntologyLoader : OntologyLoader {
                             "Detected datatype property; name={}, domain={}:{}",
                             property.localName,
                             domain.nameSpace,
-                            domain.localName
+                            domain.localName,
                         )
-                        val prefix = if (domain.nameSpace.isNullOrEmpty()) "" else model.getNsURIPrefix(domain.nameSpace) ?: ""
+                        val prefix =
+                            if (domain.nameSpace.isNullOrEmpty()) {
+                                ""
+                            } else {
+                                model.getNsURIPrefix(domain.nameSpace) ?: ""
+                            }
                         DatatypeProperty(
                             property.localName,
                             model.nsPrefixMap.containsValue(domain.nameSpace),
@@ -81,7 +86,6 @@ class DefaultOntologyLoader : OntologyLoader {
                         )
                     }
             }.toSet()
-    }
 
     private fun OntDataProperty.isDefinedOnDomain(clazz: OntClass): Boolean =
         this.domains().anyMatch { it.nameSpace == clazz.nameSpace && it.localName == clazz.localName }

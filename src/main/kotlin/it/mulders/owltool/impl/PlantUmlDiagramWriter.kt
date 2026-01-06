@@ -32,10 +32,11 @@ class PlantUmlDiagramWriter : DiagramWriter {
         newLine()
     }
 
-    private fun Property.toPlantUmlType(): String = when(this) {
-        is DatatypeProperty -> this.toPlantUmlType()
-        else -> "UnknownType"
-    }
+    private fun Property.toPlantUmlType(): String =
+        when (this) {
+            is DatatypeProperty -> this.toPlantUmlType()
+            else -> "UnknownType"
+        }
 
     private fun DatatypeProperty.toPlantUmlType(): String =
         if (inTargetNamespace || typeNamespacePrefix.isEmpty()) {
@@ -50,16 +51,18 @@ class PlantUmlDiagramWriter : DiagramWriter {
         val identifier = clazz.identifier
 
         writeLn("class $identifier as \"$name\" $stereotype {")
-        clazz.properties.filter { property -> !property.inTargetNamespace }.forEach { property ->
-            writeLn("+ ${property.name} : ${property.toPlantUmlType()}")
-        }
+        clazz.properties
+            .filter { property -> !property.inTargetNamespace }
+            .forEach { property -> writeLn("+ ${property.name} : ${property.toPlantUmlType()}") }
         writeLn("}")
         newLine()
 
-        clazz.properties.filter { property -> property.inTargetNamespace }.forEach { property ->
-            writeLn("$identifier --> ${property.toPlantUmlType()} : ${property.name}")
-            newLine()
-        }
+        clazz.properties
+            .filter { property -> property.inTargetNamespace }
+            .forEach { property ->
+                writeLn("$identifier --> ${property.toPlantUmlType()} : ${property.name}")
+                newLine()
+            }
 
         clazz.children.forEach {
             writeClassToDiagram(it)
