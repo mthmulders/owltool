@@ -5,8 +5,8 @@ import assertk.assertThat
 import assertk.assertions.contains
 import it.mulders.owltool.EXAMPLE_NAMESPACE
 import it.mulders.owltool.model.Class
+import it.mulders.owltool.model.ObjectProperty
 import it.mulders.owltool.model.Ontology
-import it.mulders.owltool.model.Property
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayOutputStream
 
@@ -94,9 +94,10 @@ class PlantUmlDiagramWriterTest {
     @Test
     fun `should write data property as field`() {
         // Arrange
+        val clazz = Class.of(EXAMPLE_NAMESPACE, "ClassWithSelfRelation")
         val ontology = Ontology(setOf(
-            Class.of(EXAMPLE_NAMESPACE, "ClassWithProperty").withProperty(
-                Property("age", "xsd:integer")
+            clazz.withProperty(
+                ObjectProperty("refers", clazz, "ex")
             )
         ))
 
@@ -104,7 +105,7 @@ class PlantUmlDiagramWriterTest {
         val diagram = ontology.generateDiagram()
 
         // Assert
-        assertThat(diagram).contains("+ age : xsd:integer")
+        assertThat(diagram).contains("classwithselfrelation --> classwithselfrelation : refers")
     }
 
     private fun Ontology.generateDiagram(): String = ByteArrayOutputStream().use { stream ->
