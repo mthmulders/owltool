@@ -39,7 +39,7 @@ class PlantUmlDiagramWriter : DiagramWriter {
         }
 
     private fun DatatypeProperty.toPlantUmlType(): String =
-        if (pointsToOntologyClass || typeNamespacePrefix.isEmpty()) {
+        if (pointsToOntologyClass) {
             this.ontologyClass.identifier
         } else {
             "$typeNamespacePrefix:${this.ontologyClass.identifier}"

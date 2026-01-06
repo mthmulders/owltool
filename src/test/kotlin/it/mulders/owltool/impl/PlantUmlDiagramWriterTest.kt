@@ -92,7 +92,7 @@ class PlantUmlDiagramWriterTest {
     }
 
     @Test
-    fun `should write data property as field`() {
+    fun `should write datatype property as field`() {
         // Arrange
         val ontology = Ontology(setOf(
             Class.of(EXAMPLE_NAMESPACE, "ClassWithProperty").withProperty(
@@ -105,6 +105,23 @@ class PlantUmlDiagramWriterTest {
 
         // Assert
         assertThat(diagram).contains("+ age : xsd:integer")
+    }
+
+    @Test
+    fun `should write datatype property with range within diagram as relation`() {
+        // Arrange
+        val clazz = Class.of(EXAMPLE_NAMESPACE, "ClassWithSelfRelation")
+        val ontology = Ontology(setOf(
+            clazz.withProperty(
+                DatatypeProperty("refers", true, clazz, "ex")
+            )
+        ))
+
+        // Act
+        val diagram = ontology.generateDiagram()
+
+        // Assert
+        assertThat(diagram).contains("classwithselfrelation --> classwithselfrelation : refers")
     }
 
     private fun Ontology.generateDiagram(): String = ByteArrayOutputStream().use { stream ->
