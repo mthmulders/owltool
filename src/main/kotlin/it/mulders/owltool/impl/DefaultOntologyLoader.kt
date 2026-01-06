@@ -42,19 +42,19 @@ class DefaultOntologyLoader : OntologyLoader {
                     }.map {
                         Class
                             .of(it.nameSpace, it.localName)
-                            .withChildren(it.findChildClasses(model))
-                            .withProperties(it.findProperties(model))
+                            .withChildren(it.findChildClasses())
+                            .withProperties(it.findProperties())
                     }.toSet()
             }.map { Ontology(it) }
 
-    private fun OntClass.findChildClasses(model: OntModel): Collection<Class> =
+    private fun OntClass.findChildClasses(): Collection<Class> =
         subClasses(true)
             .asSequence()
             .map {
                 Class
                     .of(it.nameSpace, it.localName)
-                    .withChildren(it.findChildClasses(model))
-                    .withProperties(it.findProperties(model))
+                    .withChildren(it.findChildClasses())
+                    .withProperties(it.findProperties())
             }.toSet()
 
     private fun Resource.prefixOrNamespace(): String =
@@ -64,7 +64,7 @@ class DefaultOntologyLoader : OntologyLoader {
             model.getNsURIPrefix(this.nameSpace) ?: this.nameSpace
         }
 
-    private fun OntClass.findProperties(model: OntModel): Collection<Property> =
+    private fun OntClass.findProperties(): Collection<Property> =
         this
             .properties()
             .asSequence()
@@ -89,12 +89,6 @@ class DefaultOntologyLoader : OntologyLoader {
                         )
                     }.toSet()
             }.toSet()
-
-    private fun OntDataProperty.isDefinedOnDomain(clazz: OntClass): Boolean =
-        this.domains().anyMatch { it.nameSpace == clazz.nameSpace && it.localName == clazz.localName }
-
-    private fun OntObjectProperty.isDefinedOnDomain(clazz: OntClass): Boolean =
-        this.domains().anyMatch { it.nameSpace == clazz.nameSpace && it.localName == clazz.localName }
 
     companion object {
         private val log = LoggerFactory.getLogger(DefaultOntologyLoader::class.java)
