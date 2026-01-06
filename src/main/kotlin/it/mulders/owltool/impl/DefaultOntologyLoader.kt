@@ -81,7 +81,7 @@ class DefaultOntologyLoader : OntologyLoader {
                     }.map { range ->
                         DatatypeProperty(
                             property.localName,
-                            this.nameSpace == range.nameSpace,
+                            this.model.getOntClass(range.uri) != null,
                             Class.of(range.nameSpace, range.localName),
                             range.prefixOrNamespace(),
                         )
