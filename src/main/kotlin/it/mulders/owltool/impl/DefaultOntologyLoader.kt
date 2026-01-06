@@ -85,7 +85,7 @@ class DefaultOntologyLoader : OntologyLoader {
                             Class.of(range.nameSpace, range.localName),
                             range.prefixOrNamespace(),
                         )
-                    }.toSet()
+                    }
             }.toSet()
 
     companion object {
