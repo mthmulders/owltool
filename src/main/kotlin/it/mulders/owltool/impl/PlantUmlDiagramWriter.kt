@@ -32,6 +32,13 @@ class PlantUmlDiagramWriter : DiagramWriter {
         newLine()
     }
 
+    private fun DatatypeProperty.toPlantUmlType(): String =
+        if (typeNamespacePrefix.isEmpty()) {
+            this.typeLocalName
+        } else {
+            "$typeNamespacePrefix:$typeLocalName"
+        }
+
     private fun BufferedWriter.writeClassToDiagram(clazz: Class) {
         val name = if (clazz.isAnonymous()) "_" else clazz.name
         val stereotype = if (clazz.isAnonymous()) "<<anonymous>>" else ""
@@ -39,13 +46,7 @@ class PlantUmlDiagramWriter : DiagramWriter {
 
         writeLn("class $identifier as \"$name\" $stereotype {")
         clazz.properties.filterIsInstance<DatatypeProperty>().forEach { property ->
-            val dataType =
-                if (property.typeNamespacePrefix.isEmpty()) {
-                    property.typeLocalName
-                } else {
-                    "$property.typeNamespacePrefix:${property.typeLocalName}"
-                }
-            writeLn("+ ${property.name} : $dataType")
+            writeLn("+ ${property.name} : ${property.toPlantUmlType()}")
         }
         writeLn("}")
         newLine()
