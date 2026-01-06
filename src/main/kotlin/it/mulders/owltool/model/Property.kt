@@ -2,16 +2,13 @@ package it.mulders.owltool.model
 
 interface Property {
     val name: String
+    val inTargetNamespace: Boolean
 }
 
 data class DatatypeProperty(
     override val name: String,
-    val typeLocalName: String,
+    override val inTargetNamespace: Boolean,
+    val ontologyClass: Class,
     val typeNamespacePrefix: String,
 ) : Property
 
-data class ObjectProperty(
-    override val name: String,
-    val ontologyClass: Class,
-    val typeNamespacePrefix: String?,
-) : Property

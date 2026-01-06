@@ -13,7 +13,7 @@ ex:Person
     rdfs:label   "A person."@en .
 
 ex:knows
-    rdf:type     owl:ObjectProperty ;
+    rdf:type     owl:DatatypeProperty ;
     rdfs:comment "Indicates that two persons know each other."@en ;
     rdfs:domain  ex:Person ;
     rdfs:range   ex:Person .

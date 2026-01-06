@@ -89,7 +89,7 @@ class DefaultOntologyLoaderTest {
     }
 
     @Test
-    fun `should discover object properties of classes`() {
+    fun `should discover relations between classes in the ontology`() {
         // Arrange
         val input = loadResource("/ontologies/relations.ttl")
 

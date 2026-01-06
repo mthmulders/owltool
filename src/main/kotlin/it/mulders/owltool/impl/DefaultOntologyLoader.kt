@@ -3,7 +3,6 @@ package it.mulders.owltool.impl
 import it.mulders.owltool.OntologyLoader
 import it.mulders.owltool.model.Class
 import it.mulders.owltool.model.DatatypeProperty
-import it.mulders.owltool.model.ObjectProperty
 import it.mulders.owltool.model.Ontology
 import it.mulders.owltool.model.Property
 import jakarta.enterprise.context.ApplicationScoped
@@ -43,7 +42,6 @@ class DefaultOntologyLoader : OntologyLoader {
                             .of(it.nameSpace, it.localName)
                             .withChildren(it.findChildClasses(model))
                             .withProperties(it.findDatatypeProperties(model))
-                            .withProperties(it.findObjectProperties(model))
                     }.toSet()
             }.map { Ontology(it) }
 
@@ -55,42 +53,35 @@ class DefaultOntologyLoader : OntologyLoader {
                     .of(it.nameSpace, it.localName)
                     .withChildren(it.findChildClasses(model))
                     .withProperties(it.findDatatypeProperties(model))
-                    .withProperties(it.findObjectProperties(model))
             }.toSet()
 
-    private fun OntClass.findObjectProperties(model: OntModel): Collection<Property> =
-        model
-            .objectProperties()
-            .asSequence()
-            .filter { property -> property.isDefinedOnDomain(this) }
-            .flatMap { property ->
-                property
-                    .ranges()
-                    .map { range ->
-                        ObjectProperty(
-                            property.localName,
-                            Class.of(range.nameSpace, range.localName),
-                            model.getNsURIPrefix(range.nameSpace),
-                        )
-                    }.asSequence()
-            }.toSet()
-
-    private fun OntClass.findDatatypeProperties(model: OntModel): Collection<Property> =
-        model
+    private fun OntClass.findDatatypeProperties(model: OntModel): Collection<Property> {
+        return model
             .dataProperties()
             .asSequence()
             .filter { property -> property.isDefinedOnDomain(this) }
             .flatMap { property ->
                 property
-                    .ranges()
-                    .map { range ->
+                    .domains()
+                    .asSequence()
+                    .onEach { log.info("    -> range: {}", it) }
+                    .map { domain ->
+                        log.debug(
+                            "Detected datatype property; name={}, domain={}:{}",
+                            property.localName,
+                            domain.nameSpace,
+                            domain.localName
+                        )
+                        val prefix = if (domain.nameSpace.isNullOrEmpty()) "" else model.getNsURIPrefix(domain.nameSpace) ?: ""
                         DatatypeProperty(
                             property.localName,
-                            range.localName,
-                            model.getNsURIPrefix(range.nameSpace) ?: "",
+                            model.nsPrefixMap.containsValue(domain.nameSpace),
+                            Class.of(domain.nameSpace, domain.localName),
+                            prefix,
                         )
-                    }.asSequence()
+                    }
             }.toSet()
+    }
 
     private fun OntDataProperty.isDefinedOnDomain(clazz: OntClass): Boolean =
         this.domains().anyMatch { it.nameSpace == clazz.nameSpace && it.localName == clazz.localName }
