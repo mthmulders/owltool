@@ -35,7 +35,7 @@ class PlantUmlDiagramWriter : DiagramWriter {
     private fun Property.toPlantUmlType(): String =
         when (this) {
             is DatatypeProperty -> this.toPlantUmlType()
-            else -> throw IllegalStateException("Unexpected property type: $this")
+            else -> error("Unexpected property type: $this")
         }
 
     private fun DatatypeProperty.toPlantUmlType(): String =
