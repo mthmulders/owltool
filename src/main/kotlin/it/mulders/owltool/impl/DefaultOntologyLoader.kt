@@ -3,19 +3,18 @@ package it.mulders.owltool.impl
 import it.mulders.owltool.OntologyLoader
 import it.mulders.owltool.model.Class
 import it.mulders.owltool.model.DatatypeProperty
-import it.mulders.owltool.model.ObjectProperty
 import it.mulders.owltool.model.Ontology
 import it.mulders.owltool.model.Property
 import jakarta.enterprise.context.ApplicationScoped
 import org.apache.jena.ontapi.OntModelFactory
 import org.apache.jena.ontapi.OntSpecification
 import org.apache.jena.ontapi.model.OntClass
-import org.apache.jena.ontapi.model.OntDataProperty
 import org.apache.jena.ontapi.model.OntModel
-import org.apache.jena.ontapi.model.OntObjectProperty
+import org.apache.jena.rdf.model.Resource
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.io.InputStreamReader
+import kotlin.sequences.toSet
 import kotlin.streams.asSequence
 
 @ApplicationScoped
@@ -41,62 +40,53 @@ class DefaultOntologyLoader : OntologyLoader {
                     }.map {
                         Class
                             .of(it.nameSpace, it.localName)
-                            .withChildren(it.findChildClasses(model))
-                            .withProperties(it.findDatatypeProperties(model))
-                            .withProperties(it.findObjectProperties(model))
+                            .withChildren(it.findChildClasses())
+                            .withProperties(it.findProperties())
                     }.toSet()
             }.map { Ontology(it) }
 
-    private fun OntClass.findChildClasses(model: OntModel): Collection<Class> =
+    private fun OntClass.findChildClasses(): Collection<Class> =
         subClasses(true)
             .asSequence()
             .map {
                 Class
                     .of(it.nameSpace, it.localName)
-                    .withChildren(it.findChildClasses(model))
-                    .withProperties(it.findDatatypeProperties(model))
-                    .withProperties(it.findObjectProperties(model))
+                    .withChildren(it.findChildClasses())
+                    .withProperties(it.findProperties())
             }.toSet()
 
-    private fun OntClass.findObjectProperties(model: OntModel): Collection<Property> =
-        model
-            .objectProperties()
+    private fun Resource.prefixOrNamespace(): String =
+        if (this.nameSpace.isNullOrEmpty()) {
+            ""
+        } else {
+            model.getNsURIPrefix(this.nameSpace) ?: this.nameSpace
+        }
+
+    private fun OntClass.findProperties(): Collection<Property> =
+        this
+            .properties()
             .asSequence()
-            .filter { property -> property.isDefinedOnDomain(this) }
             .flatMap { property ->
                 property
                     .ranges()
-                    .map { range ->
-                        ObjectProperty(
+                    .asSequence()
+                    .onEach { range ->
+                        log.debug(
+                            "Found property {} on class {} with range {}:{}",
                             property.localName,
-                            Class.of(range.nameSpace, range.localName),
-                            model.getNsURIPrefix(range.nameSpace),
+                            this.localName,
+                            range.prefixOrNamespace(),
+                            range.localName,
                         )
-                    }.asSequence()
-            }.toSet()
-
-    private fun OntClass.findDatatypeProperties(model: OntModel): Collection<Property> =
-        model
-            .dataProperties()
-            .asSequence()
-            .filter { property -> property.isDefinedOnDomain(this) }
-            .flatMap { property ->
-                property
-                    .ranges()
-                    .map { range ->
+                    }.map { range ->
                         DatatypeProperty(
                             property.localName,
-                            range.localName,
-                            model.getNsURIPrefix(range.nameSpace) ?: "",
+                            this.model.getOntClass(range.uri) != null,
+                            Class.of(range.nameSpace, range.localName),
+                            range.prefixOrNamespace(),
                         )
-                    }.asSequence()
+                    }
             }.toSet()
-
-    private fun OntDataProperty.isDefinedOnDomain(clazz: OntClass): Boolean =
-        this.domains().anyMatch { it.nameSpace == clazz.nameSpace && it.localName == clazz.localName }
-
-    private fun OntObjectProperty.isDefinedOnDomain(clazz: OntClass): Boolean =
-        this.domains().anyMatch { it.nameSpace == clazz.nameSpace && it.localName == clazz.localName }
 
     companion object {
         private val log = LoggerFactory.getLogger(DefaultOntologyLoader::class.java)
