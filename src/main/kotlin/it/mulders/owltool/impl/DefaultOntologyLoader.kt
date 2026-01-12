@@ -14,6 +14,7 @@ import org.apache.jena.rdf.model.Resource
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.io.InputStreamReader
+import kotlin.sequences.filter
 import kotlin.sequences.toSet
 import kotlin.streams.asSequence
 
@@ -31,6 +32,7 @@ class DefaultOntologyLoader : OntologyLoader {
                 model
                     .hierarchyRoots()
                     .asSequence()
+                    .filter { it !is OntClass.UnionOf }
                     .onEach { logRootClassDetected(it) }
                     .map { it.toClass() }
                     .toSet()
