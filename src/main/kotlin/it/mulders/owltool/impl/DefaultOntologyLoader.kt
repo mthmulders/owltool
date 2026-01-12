@@ -31,19 +31,23 @@ class DefaultOntologyLoader : OntologyLoader {
                 model
                     .hierarchyRoots()
                     .asSequence()
-                    .onEach {
-                        log.debug(
-                            "Found ontology root class; namespace={}, name={}",
-                            it.nameSpace,
-                            it.localName,
-                        )
-                    }.map {
-                        Class
-                            .of(it.nameSpace, it.localName)
-                            .withChildren(it.findChildClasses())
-                            .withProperties(it.findProperties())
-                    }.toSet()
+                    .onEach { logRootClassDetected(it) }
+                    .map { it.toClass() }
+                    .toSet()
             }.map { Ontology(it) }
+
+    private fun logRootClassDetected(ontClass: OntClass) =
+        log.debug(
+            "Found ontology root class; namespace={}, name={}",
+            ontClass.nameSpace,
+            ontClass.localName,
+        )
+
+    private fun OntClass.toClass() =
+        Class
+            .of(this.nameSpace, this.localName)
+            .withChildren(this.findChildClasses())
+            .withProperties(this.findProperties())
 
     private fun OntClass.findChildClasses(): Collection<Class> =
         subClasses(true)
